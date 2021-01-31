@@ -1,0 +1,21 @@
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+x509_extensions = v3_req
+distinguished_name = dn
+
+[dn]
+C = US
+ST = NY
+L = Buffalo
+O = Example
+emailAddress = lolz@gmail.com
+CN = *.{{ base_domain }}
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = gitlab.{{ base_domain }}
+DNS.2 = registry.{{ base_domain }}

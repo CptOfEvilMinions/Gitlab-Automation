@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  ####################################### Gitlab Runner #######################################
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine-v13.8.0
+    volumes: 
+      - /var/run/docker.sock:/var/run/docker.sock
+    secrets:
+      - tls-cert
+      - source: gitlab-runner-config
+        target: /etc/gitlab-runner/config.toml
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+          memory: 5000M
+        reservations:
+          cpus: '0.5'
+          memory: 100M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 50
+        window: 120s
+
+networks: 
+  gitlab-vault_gitlab-backend:
+    external: true
+
+secrets:
+  gitlab-runner-config:
+    external: true
+
+  tls-cert:
+    file: ./conf/tls/tls.crt

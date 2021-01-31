@@ -1,0 +1,116 @@
+version: '2.2'
+services:
+  ####################################### NGINX #######################################
+  nginx:
+    container_name: 'gitlab-nginx'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-NGINX
+      args:
+        NGINX_VERSION: ${NGINX_VERSION}
+    environment: 
+      NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
+      BASE_DOMAIN: '${BASE_DOMAIN}'
+    networks: 
+      - default
+      - gitlab-backend
+    ports:
+      - 8000:80
+      - 8443:443
+      - 5000:5000
+    depends_on: 
+      - gitlab
+    cpus: 1
+    mem_limit: 150M
+
+  ######################################## Gitlab ########################################
+  gitlab:
+    container_name: 'gitlab-gitlab'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-gitlab
+      args: 
+        GITLAB_VERSION: ${GITLAB_VERSION}
+        GITLAB_ROOT_PASSWORD: ${GITLAB_ROOT_PASSWORD}
+        POSTGRES_GITLAB_PASSWORD: ${POSTGRES_GITLAB_PASSWORD}
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        from_file('/omnibus_config.rb')
+        external_url "https://gitlab.${BASE_DOMAIN}:8443/"
+    networks: 
+      - default
+      - gitlab-backend
+    ports:
+      - '2222:22'
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - gitlab-data:/var/opt/gitlab
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+    cpus: 4
+    mem_limit: 4G
+  
+  ######################################## Docker Registry ########################################
+  registry:
+    container_name: 'gitlab-docker-registry'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-registry
+      args:
+        DOCKER_REGISTRY_VERSION: ${DOCKER_REGISTRY_VERSION}
+    environment: 
+      - REGISTRY_HTTP_HOST=https://registry.${BASE_DOMAIN}:5000
+    networks: 
+      - gitlab-backend
+    volumes: 
+      - registry-data:/var/lib/registry
+    cpus: 1
+    mem_limit: 150M
+
+  ######################################## Redis ########################################
+  redis:
+    container_name: 'gitlab-redis'
+    restart: unless-stopped
+    image: redis:6.0.10
+    volumes:
+      - redis-data:/var/lib/redis:Z
+    networks: 
+      - gitlab-backend
+    cpus: 1
+    mem_limit: 150M
+
+  ######################################## Postgres ########################################
+  postgres:
+    container_name: 'gitlab-postgres'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-postgres
+      args: 
+        POSTGRES_VERSION: ${POSTGRES_VERSION}
+    environment:
+      - POSTGRES_DB=gitlabhq_production
+      - POSTGRES_USER=gitlab
+      - POSTGRES_PASSWORD=${POSTGRES_GITLAB_PASSWORD}
+    networks: 
+      - gitlab-backend
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    cpus: 2
+    mem_limit: 300M
+
+volumes:
+  gitlab-data:
+  gitlab-config:
+  gitlab-logs:
+  redis-data:
+  postgresql-data:
+  registry-data:
+
+networks:
+  gitlab-backend:

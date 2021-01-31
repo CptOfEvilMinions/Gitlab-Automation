@@ -1,0 +1,18 @@
+version: 0.1
+storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
+    maxthreads: 100
+  delete:
+    enabled: false
+log:
+  level: info
+http:
+  addr: localhost:5000
+#auth:
+  #token:
+    #autoredirect: true
+    #realm: http://gitlab/jwt/auth
+    #service: container_registry
+    #issuer: gitlab-issuer
+    #rootcertbundle: /root/certs/bundle

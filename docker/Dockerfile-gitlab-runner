@@ -1,0 +1,6 @@
+ARG GITLAB_RUNNER_VERSION
+FROM gitlab/gitlab-runner:${GITLAB_RUNNER_VERSION}
+
+COPY conf/tls/*.crt /etc/gitlab-runner/certs/gitlab.crt
+COPY conf/gitlab-runner/docker-gitlab-runner.toml /etc/gitlab-runner/config.toml
+RUN sed -i "s#/run/secrets/tls-cert#/etc/gitlab-runner/certs/gitlab.crt#g" /etc/gitlab-runner/config.toml

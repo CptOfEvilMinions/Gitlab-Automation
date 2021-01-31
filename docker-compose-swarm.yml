@@ -1,0 +1,195 @@
+version: '3.9'
+services:
+  ####################################### NGINX #######################################
+  nginx:
+    image: nginx:1.19.6-alpine
+    configs:
+      - source: nginx-config
+        target: /etc/nginx/nginx.conf
+      # LEAVE the EXTRA `.conf` because it is chopped when evaluated
+      - source: nginx-gitlab-config
+        target: /etc/nginx/templates/gitlab.conf.conf
+      - source: nginx-docker-registry
+        target: /etc/nginx/templates/docker-registry.conf.conf
+    environment: 
+      NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
+      BASE_DOMAIN: 'hackinglab.local'
+    secrets:
+      - source: tls-cert
+        target: /etc/ssl/certs/nginx.crt
+      - source: tls-key
+        target: /etc/ssl/private/nginx.key
+    networks: 
+      - default
+      - gitlab-backend
+    ports:
+      - 8000:80
+      - 8443:443
+      - 5000:5000
+    depends_on: 
+      - gitlab
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 150M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 50
+        window: 120s
+
+  ######################################## Gitlab ########################################
+  gitlab:
+    image: gitlab/gitlab-ce:13.8.1-ce.0
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        from_file('/omnibus_config.rb')
+        external_url "https://gitlab.hackinglab.local:8443/"
+    configs:
+      - source: gitlab-config
+        target: /omnibus_config.rb
+    secrets:
+      - gitlab-root-password
+      - gitlab-postgres-gitlab-password
+    networks: 
+      - default
+      - gitlab-backend
+    ports:
+      - '2222:22'
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - gitlab-data:/var/opt/gitlab
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 300M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 50
+        window: 120s
+  
+  ######################################## Docker Registry ########################################
+  registry:
+    image: registry:2.7.1
+    environment: 
+      - REGISTRY_HTTP_HOST=https://registry.hackinglab.local:5000
+    configs:
+      - source: docker-registry-config
+        target: /etc/docker/registry/config.yml
+    networks: 
+      - gitlab-backend
+    volumes: 
+      - registry-data:/var/lib/registry
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 150M
+        reservations:
+          cpus: '0.25'
+          memory: 100M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 50
+        window: 120s
+
+  ######################################## Redis ########################################
+  redis:
+    image: redis:6.0.10
+    volumes:
+      - redis-data:/var/lib/redis:Z
+    networks: 
+      - gitlab-backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 150M
+        reservations:
+          cpus: '0.25'
+          memory: 100M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 50
+        window: 120s
+
+  ######################################## Postgres ########################################
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_DB=gitlabhq_production
+      - POSTGRES_USER=gitlab
+      - POSTGRES_PASSWORD_FILE=/run/secrets/gitlab-postgres-gitlab-password
+    secrets:
+      - gitlab-postgres-gitlab-password
+    configs:
+      - source: postgres-extension-script
+        target: /docker-entrypoint-initdb.d/postgres-extension-script.sh
+        mode: 0755
+    networks: 
+      - gitlab-backend
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 300M
+        reservations:
+          cpus: '0.5'
+          memory: 100M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 50
+        window: 120s
+
+volumes:
+  gitlab-data:
+  gitlab-config:
+  gitlab-logs:
+  redis-data:
+  postgresql-data:
+  registry-data:
+
+secrets:
+  tls-key:
+    file: ./conf/tls/tls.key
+  tls-cert:
+    file: ./conf/tls/tls.crt
+  gitlab-postgres-gitlab-password:
+    external: true
+  gitlab-root-password:
+    external: true
+
+networks:
+  gitlab-backend:
+
+configs:
+  postgres-extension-script:
+    file: ./conf/postgres/entrypoint-extensions.sh
+  gitlab-config:
+    file: ./conf/gitlab/gitlab_small.rb
+  nginx-config:
+    file: ./conf/nginx/nginx.conf
+  nginx-gitlab-config:
+    file: ./conf/nginx/nginx_gitlab.conf
+  nginx-docker-registry:
+    file: ./conf/nginx/nginx_docker_registry.conf
+  docker-registry-config:
+    file: ./conf/registry/config.yml

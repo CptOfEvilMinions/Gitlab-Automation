@@ -1,0 +1,11 @@
+ARG GITLAB_VERSION
+FROM gitlab/gitlab-ce:${GITLAB_VERSION}
+
+ARG GITLAB_ROOT_PASSWORD
+ARG POSTGRES_GITLAB_PASSWORD
+
+COPY conf/gitlab/gitlab_small.rb /omnibus_config.rb
+
+# Set Gitlab root password and Postgres password
+RUN sed -i "s#File.read('/run/secrets/gitlab-root-password')#\"${GITLAB_ROOT_PASSWORD}\"#g" /omnibus_config.rb
+RUN sed -i "s#File.read('/run/secrets/gitlab-postgres-gitlab-password')#\"${POSTGRES_GITLAB_PASSWORD}\"#g" /omnibus_config.rb

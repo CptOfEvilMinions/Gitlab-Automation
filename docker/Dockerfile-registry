@@ -1,0 +1,4 @@
+ARG DOCKER_REGISTRY_VERSION
+FROM registry:${DOCKER_REGISTRY_VERSION}
+
+COPY conf/registry/config.yml /etc/docker/registry/config.yml
