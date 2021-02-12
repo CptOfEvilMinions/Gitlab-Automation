@@ -1,0 +1,50 @@
+---
+stages:
+  - test
+
+################################# Linux VM runner test #################################
+test_linux_runner:
+  stage: test
+  script:
+    - 'hostname'
+    - 'whoami'
+  tags:
+    - ubuntu2004
+
+################################# macOS VM runner test #################################
+test_macos_runner:
+  stage: test
+  script:
+    - 'hostname'
+    - 'whoami'
+  tags:
+    - macos11
+
+################################# Windows VM runenr test #################################
+test_win_runner:
+  stage: test
+  script:
+    - 'hostname'
+    - 'whoami'
+  tags:
+    - win10_1909
+
+################################# Docker runner test #################################
+test_docker_runner:
+  stage: test
+  script:
+    - 'hostname'
+    - 'whoami'
+  tags:
+    - linux
+    - docker
+
+################################ Windows Docker runner test #################################
+test_win_docker_runner:
+  stage: test
+  script:
+    - 'hostname'
+    - 'whoami'
+  tags:
+    - windows
+    - docker

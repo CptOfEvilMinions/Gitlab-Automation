@@ -1,2 +1,3 @@
 conf/tls/*
 !conf/tls/tls.conf.example
+conf/gitlab-runner/docker-gitlab-runner.toml
