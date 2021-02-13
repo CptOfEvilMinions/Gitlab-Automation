@@ -8,7 +8,7 @@ storage:
 log:
   level: info
 http:
-  addr: localhost:5000
+  addr: 0.0.0.0:5000
 #auth:
   #token:
     #autoredirect: true

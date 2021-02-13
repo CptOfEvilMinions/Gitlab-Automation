@@ -42,9 +42,22 @@ test_docker_runner:
 ################################ Windows Docker runner test #################################
 test_win_docker_runner:
   stage: test
+  image: mcr.microsoft.com/windows/servercore:1809
   script:
     - 'hostname'
     - 'whoami'
   tags:
     - windows
+    - docker
+
+################################ Custom Docker image runner test #################################
+test_custom_docker_image_runner:
+  stage: test
+  image: registry.hackinglab.local:5000/custom-ubuntu
+  script:
+    - 'hostname'
+    - 'whoami'
+    - 'curl -s https://www.google.com > /dev/null'
+  tags:
+    - linux
     - docker

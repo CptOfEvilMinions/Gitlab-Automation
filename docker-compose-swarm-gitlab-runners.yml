@@ -3,18 +3,21 @@ services:
   ####################################### Gitlab Runner #######################################
   gitlab-runner:
     image: gitlab/gitlab-runner:alpine-v13.8.0
-    volumes: 
-      - /var/run/docker.sock:/var/run/docker.sock
     secrets:
-      - tls-cert
+      - source: tls-cert
+        target: /etc/gitlab-runner/certs/ca.crt
       - source: gitlab-runner-config
         target: /etc/gitlab-runner/config.toml
+    volumes: 
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: 
+      - gitlab_gitlab-backend
     deploy:
       replicas: 1
       resources:
         limits:
           cpus: '2'
-          memory: 5000M
+          memory: 100M
         reservations:
           cpus: '0.5'
           memory: 100M
@@ -24,13 +27,13 @@ services:
         max_attempts: 50
         window: 120s
 
+
 networks: 
-  gitlab-vault_gitlab-backend:
+  gitlab_gitlab-backend:
     external: true
 
 secrets:
   gitlab-runner-config:
     external: true
-
   tls-cert:
     file: ./conf/tls/tls.crt

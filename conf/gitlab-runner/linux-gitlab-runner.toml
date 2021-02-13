@@ -5,7 +5,7 @@ check_interval = 0
   session_timeout = 1800
 
 [[runners]]
-  name = "ubuntuvm"
+  name = "Ubuntu-VM"
   url = "{{ gitlab_runner_url }}"
   token = "{{ gitlab_runner_token }}"
   tls-ca-file = "/etc/gitlab-runner/certs/gitlab.crt"

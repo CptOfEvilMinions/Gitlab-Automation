@@ -5,7 +5,7 @@ check_interval = 0
   session_timeout = 1800
 
 [[runners]]
-  name = "DESKTOP-6U9KU52"
+  name = "Windows-VM"
   url = "{{ gitlab_runner_url }}"
   token = "{{ gitlab_runner_token }}"
   tls-ca-file = ".\\gitlab.cer"

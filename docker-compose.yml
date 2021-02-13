@@ -7,10 +7,12 @@ services:
     build: 
       context: .
       dockerfile: docker/Dockerfile-NGINX
+      args:
+        - NGINX_VERSION=${NGINX_VERSION}
     environment: 
       # LEAVE the EXTRA `.conf` because it is chopped when evaluated
       NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
-      BASE_DOMAIN: 'hackinglab.local'
+      BASE_DOMAIN: '${BASE_DOMAIN}'
     networks: 
       - default
       - gitlab-backend
@@ -30,6 +32,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile-gitlab
+      args:
+        - GITLAB_VERSION=${GITLAB_VERSION}
+        - GITLAB_ROOT_PASSWORD=${GITLAB_ROOT_PASSWORD}
+        - POSTGRES_GITLAB_PASSWORD=${POSTGRES_GITLAB_PASSWORD}
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         from_file('/omnibus_config.rb')
@@ -56,6 +62,8 @@ services:
     build: 
       context: .
       dockerfile: docker/Dockerfile-registry
+      args:
+        - DOCKER_REGISTRY_VERSION=${DOCKER_REGISTRY_VERSION}
     environment: 
       - REGISTRY_HTTP_HOST=https://registry.hackinglab.local:5000
     networks: 
