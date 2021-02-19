@@ -1,5 +1,7 @@
 # Gitlab Docker
 
+* [Blog post - DevOps Tales: Install/Setup Gitlab + Gitlab runners on Docker, Windows, Linux and macOS](https://holdmybeersecurity.com/2021/02/19/devops-tales-install-setup-gitlab-gitlab-runners-on-docker-windows-linux-and-macos/)
+
 ## References
 * [sv - control and manage services monitored by runsv](http://smarden.org/runit/sv.8.html)
 * [Install GitLab using Docker Compose](https://docs.gitlab.com/omnibus/docker/#install-gitlab-using-docker-compose)
