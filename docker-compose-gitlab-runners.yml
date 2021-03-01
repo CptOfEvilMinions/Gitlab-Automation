@@ -15,20 +15,8 @@ services:
       - tls-cert
       - source: gitlab-runner-config
         target: /etc/gitlab-runner/config.toml
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '2'
-          memory: 5000M
-        reservations:
-          cpus: '0.5'
-          memory: 100M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 50
-        window: 120s
+    cpus: 1
+    mem_limit: 500M
 
 networks: 
   gitlab-vault_gitlab-backend:

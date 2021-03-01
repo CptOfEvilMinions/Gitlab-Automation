@@ -1,54 +1,18 @@
 version: '3.9'
 services:
-  ####################################### NGINX #######################################
-  nginx:
-    image: nginx:1.19.6-alpine
-    configs:
-      - source: nginx-config
-        target: /etc/nginx/nginx.conf
-      # LEAVE the EXTRA `.conf` because it is chopped when evaluated
-      - source: nginx-gitlab-config
-        target: /etc/nginx/templates/gitlab.conf.conf
-      - source: nginx-docker-registry
-        target: /etc/nginx/templates/docker-registry.conf.conf
-    environment: 
-      NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
-      BASE_DOMAIN: 'hackinglab.local'
-    secrets:
-      - source: tls-cert
-        target: /etc/ssl/certs/nginx.crt
-      - source: tls-key
-        target: /etc/ssl/private/nginx.key
-    networks: 
-      - default
-      - gitlab-backend
-    ports:
-      - 8000:80
-      - 8443:443
-      - 5000:5000
-    depends_on: 
-      - gitlab
-    deploy:
-      resources:
-        limits:
-          #cpus: '1'
-          memory: 50M
-        reservations:
-          #cpus: '0.25'
-          memory: 20M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 50
-        window: 120s
-
   ######################################## Gitlab ########################################
   gitlab:
     image: gitlab/gitlab-ce:13.8.1-ce.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitlab.rule=Host(`gitlab.hackinglab.local`)"
+      - "traefik.http.routers.gitlab.tls=true"
+      - "traefik.docker.network=traefik_traefik-net"
+      - "traefik.http.services.gitlab.loadbalancer.server.port=443"
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         from_file('/omnibus_config.rb')
-        external_url "https://gitlab.hackinglab.local:8443/"
+        external_url "https://gitlab.hackinglab.local:443/"
     configs:
       - source: gitlab-config
         target: /omnibus_config.rb
@@ -56,7 +20,7 @@ services:
       - gitlab-root-password
       - gitlab-postgres-gitlab-password
     networks: 
-      - default
+      - traefik_traefik-net
       - gitlab-backend
     ports:
       - '2222:22'
@@ -84,12 +48,19 @@ services:
   ######################################## Docker Registry ########################################
   registry:
     image: registry:2.7.1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.registry.rule=Host(`registry.hackinglab.local`)"
+      - "traefik.http.routers.registry.tls=true"
+      - "traefik.docker.network=traefik_traefik-net"
+      - "traefik.http.services.registry.loadbalancer.server.port=5000"
     environment: 
-      - REGISTRY_HTTP_HOST=https://registry.hackinglab.local:5000
+      - REGISTRY_HTTP_HOST=https://registry.hackinglab.local
     configs:
       - source: docker-registry-config
         target: /etc/docker/registry/config.yml
     networks: 
+      - traefik_traefik-net
       - gitlab-backend
     volumes: 
       - registry-data:/var/lib/registry
@@ -179,6 +150,8 @@ secrets:
 
 networks:
   gitlab-backend:
+  traefik_traefik-net:
+    external: true
 
 configs:
   postgres-extension-script:
