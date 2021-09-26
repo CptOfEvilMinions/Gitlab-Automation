@@ -25,5 +25,5 @@ networks:
 secrets:
   gitlab-runner-config:
     file: ./conf/gitlab-runner/docker-gitlab-runner.toml
-  tls-cert:
-    file: ./conf/tls/tls.crt
+  gitlab-runner-tls-cert:
+    external: true

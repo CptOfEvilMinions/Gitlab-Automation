@@ -2,7 +2,7 @@ version: '3.9'
 services:
   ######################################## Gitlab ########################################
   gitlab:
-    image: gitlab/gitlab-ce:13.8.1-ce.0
+    image: gitlab/gitlab-ce:14.3.0-ce.0
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.gitlab.rule=Host(`gitlab.hackinglab.local`)"
@@ -34,10 +34,8 @@ services:
     deploy:
       resources:
         limits:
-          ##cpus: '2'
           memory: 3G
         reservations:
-          ##cpus: '1'
           memory: 300M
       restart_policy:
         condition: on-failure
@@ -67,10 +65,8 @@ services:
     deploy:
       resources:
         limits:
-          #cpus: '1'
           memory: 150M
         reservations:
-          #cpus: '0.25'
           memory: 100M
       restart_policy:
         condition: on-failure
@@ -80,7 +76,7 @@ services:
 
   ######################################## Redis ########################################
   redis:
-    image: redis:6.0.10
+    image: redis:6.2.5
     volumes:
       - redis-data:/var/lib/redis:Z
     networks: 
@@ -88,10 +84,8 @@ services:
     deploy:
       resources:
         limits:
-          #cpus: '1'
           memory: 150M
         reservations:
-          #cpus: '0.25'
           memory: 100M
       restart_policy:
         condition: on-failure
@@ -119,10 +113,8 @@ services:
     deploy:
       resources:
         limits:
-          #cpus: '2'
           memory: 300M
         reservations:
-          #cpus: '0.5'
           memory: 100M
       restart_policy:
         condition: on-failure
