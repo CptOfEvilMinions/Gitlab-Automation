@@ -2,9 +2,9 @@ version: "3.9"
 services:
   ####################################### Gitlab Runner #######################################
   gitlab-runner:
-    image: gitlab/gitlab-runner:alpine-v13.8.0
+    image: gitlab/gitlab-runner:alpine-v14.3.0
     secrets:
-      - source: tls-cert
+      - source: gitlab-runner-tls-cert
         target: /etc/gitlab-runner/certs/ca.crt
       - source: gitlab-runner-config
         target: /etc/gitlab-runner/config.toml
@@ -35,5 +35,5 @@ networks:
 secrets:
   gitlab-runner-config:
     external: true
-  tls-cert:
-    file: ./conf/tls/tls.crt
+  gitlab-runner-tls-cert:
+    external: true
